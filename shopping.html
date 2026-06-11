@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shopping List Guide — Silverback Performance Coaching</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="crumbs"><a href="index.html">← All resources</a></nav>
+
+  <header class="site">
+    <p class="eyebrow">Silverback Performance Coaching</p>
+    <h1>Shopping list guide</h1>
+    <p class="lede">The staples worth keeping in the house. Shop the protein and veg sections first — if those are covered, the week takes care of itself. Tick items off as you go; your list resets when you reload after a clear.</p>
+  </header>
+
+  <div class="toolbar">
+    <button class="ghost" type="button" onclick="window.print()">Print this list</button>
+    <button class="ghost" type="button" id="resetBtn">Untick everything</button>
+  </div>
+
+  <div class="cols" id="lists"></div>
+
+  <div class="card" style="margin-top:20px;">
+    <h2>Buying smart</h2>
+    <p style="color:var(--muted); margin-bottom:10px;">Frozen veg and frozen fish are nutritionally excellent, cheaper, and don't go off mid-week — keep the freezer stocked. Buy mince and chicken in bulk when reduced, portion it, and freeze.</p>
+    <p style="color:var(--muted);">Pre-cooked rice pouches, tinned fish and rotisserie chicken are legitimate tools, not cheating. The best plan is the one you'll actually execute on a busy Tuesday.</p>
+  </div>
+
+  <p class="note">Tracking isn't forever — it's a skill, so you can eventually eyeball portions with confidence.</p>
+
+  <footer class="site">
+    <p>© Silverback Performance Coaching. General education, not individual medical or dietetic advice.</p>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  var KEY = 'spc-shopping-v1';
+  var data = [
+    { title: 'Protein', items: [
+      'Chicken breast / thighs',
+      'Beef mince (5% or 12%)',
+      'Steak (cheaper cuts work)',
+      'White fish (frozen is fine)',
+      'Salmon or mackerel',
+      'Tinned tuna',
+      'Eggs (buy plenty)',
+      'Greek yoghurt (high protein)',
+      'Skyr / quark',
+      'Whey protein'
+    ]},
+    { title: 'Carbohydrates', items: [
+      'Jasmine or basmati rice',
+      'Potatoes / sweet potatoes',
+      'Oats',
+      'Pasta',
+      'Bread (decent quality)',
+      'Pre-cooked rice pouches',
+      'Honey',
+      'Bananas',
+      'Berries (frozen is fine)',
+      'Other fruit you actually eat'
+    ]},
+    { title: 'Vegetables & salad', items: [
+      'Frozen mixed veg',
+      'Broccoli / green beans',
+      'Spinach or rocket',
+      'Peppers',
+      'Onions & garlic',
+      'Tomatoes',
+      'Cucumber',
+      'Carrots',
+      'Mushrooms',
+      'Bagged salad (zero-effort veg)'
+    ]},
+    { title: 'Fats & flavour', items: [
+      'Olive oil',
+      'Butter',
+      'Avocado',
+      'Nuts (almonds, cashews)',
+      'Nut butter',
+      'Cheese (measured, not guessed)',
+      'Salt & pepper',
+      'Stock cubes',
+      'Spice blends you like',
+      'Light sauces (soy, hot sauce, salsa)'
+    ]}
+  ];
+
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { saved = {}; }
+
+  var wrap = document.getElementById('lists');
+
+  data.forEach(function (group, gi) {
+    var card = document.createElement('div');
+    card.className = 'card';
+    var h = document.createElement('h2');
+    h.textContent = group.title;
+    card.appendChild(h);
+    var ul = document.createElement('ul');
+    ul.className = 'checklist';
+    group.items.forEach(function (item, ii) {
+      var li = document.createElement('li');
+      var id = 'i' + gi + '-' + ii;
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.id = id;
+      cb.checked = !!saved[id];
+      if (cb.checked) li.classList.add('done');
+      cb.addEventListener('change', function () {
+        li.classList.toggle('done', cb.checked);
+        saved[id] = cb.checked;
+        try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
+      });
+      var label = document.createElement('label');
+      label.htmlFor = id;
+      label.style.cssText = 'text-transform:none;letter-spacing:0;font-size:0.95rem;color:var(--ink);margin:0;cursor:pointer;';
+      var span = document.createElement('span');
+      span.textContent = item;
+      label.appendChild(span);
+      li.appendChild(cb);
+      li.appendChild(label);
+      ul.appendChild(li);
+    });
+    card.appendChild(ul);
+    wrap.appendChild(card);
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', function () {
+    saved = {};
+    try { localStorage.removeItem(KEY); } catch (e) {}
+    wrap.querySelectorAll('input[type=checkbox]').forEach(function (cb) {
+      cb.checked = false;
+      cb.closest('li').classList.remove('done');
+    });
+  });
+})();
+</script>
+</body>
+</html>

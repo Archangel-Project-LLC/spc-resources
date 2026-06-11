@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Weekly Meal Planner — Silverback Performance Coaching</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="crumbs"><a href="index.html">← All resources</a></nav>
+
+  <header class="site">
+    <p class="eyebrow">Silverback Performance Coaching</p>
+    <h1>Weekly meal planner</h1>
+    <p class="lede">Three meals a day, protein and veg in every one. Note your training in the last column and put your biggest carb meals around it. Your plan saves automatically on this device, or print a blank copy for the fridge.</p>
+  </header>
+
+  <div class="toolbar">
+    <button class="ghost" type="button" onclick="window.print()">Print this planner</button>
+    <button class="ghost" type="button" id="clearBtn">Clear the week</button>
+  </div>
+
+  <div class="card" style="overflow-x:auto;">
+    <table class="planner" id="plannerTable">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Meal 1</th>
+          <th>Meal 2</th>
+          <th>Meal 3</th>
+          <th>Training</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>How to use it</h2>
+    <p style="color:var(--muted); margin-bottom:10px;">Build each meal in this order: <strong style="color:var(--ink);">protein first</strong> (palm-sized minimum), <strong style="color:var(--ink);">veg second</strong> (half the plate), then <strong style="color:var(--ink);">carbs scaled to training</strong> — more on hard sessions, less on rest days. Fats mostly take care of themselves through cooking and protein sources.</p>
+    <p style="color:var(--muted);">Repeat meals you enjoy. Variety across the week matters more than variety across the day, and repeated meals are the easiest ones to track.</p>
+  </div>
+
+  <p class="note">Tracking isn't forever — it's a skill, so you can eventually eyeball portions with confidence.</p>
+
+  <footer class="site">
+    <p>© Silverback Performance Coaching. General education, not individual medical or dietetic advice.</p>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  var days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  var cols = ['m1','m2','m3','tr'];
+  var KEY = 'spc-planner-v1';
+  var tbody = document.querySelector('#plannerTable tbody');
+
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { saved = {}; }
+
+  days.forEach(function (day) {
+    var tr = document.createElement('tr');
+    var td = document.createElement('td');
+    td.className = 'daycol';
+    td.textContent = day;
+    tr.appendChild(td);
+    cols.forEach(function (c) {
+      var cell = document.createElement('td');
+      var ta = document.createElement('textarea');
+      ta.rows = 2;
+      ta.dataset.key = day + ':' + c;
+      ta.value = saved[ta.dataset.key] || '';
+      ta.addEventListener('input', save);
+      cell.appendChild(ta);
+      tr.appendChild(cell);
+    });
+    tbody.appendChild(tr);
+  });
+
+  function save() {
+    var data = {};
+    tbody.querySelectorAll('textarea').forEach(function (ta) {
+      if (ta.value.trim()) data[ta.dataset.key] = ta.value;
+    });
+    try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {}
+  }
+
+  document.getElementById('clearBtn').addEventListener('click', function () {
+    if (!confirm('Clear everything in the planner?')) return;
+    tbody.querySelectorAll('textarea').forEach(function (ta) { ta.value = ''; });
+    try { localStorage.removeItem(KEY); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>

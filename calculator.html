@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Macro Calculator — Silverback Performance Coaching</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="crumbs"><a href="index.html">← All resources</a></nav>
+
+  <header class="site">
+    <p class="eyebrow">Silverback Performance Coaching</p>
+    <h1>Macro calculator</h1>
+    <p class="lede">Enter your stats and goal. The calculator uses the Mifflin-St Jeor equation with protein set for strength athletes. Treat the output as your starting point — adjust based on how your weight and training respond over 2–3 weeks.</p>
+  </header>
+
+  <div class="card">
+    <div class="field">
+      <label>Units</label>
+      <div class="seg" id="unitSeg">
+        <button type="button" class="on" data-u="metric">kg / cm</button>
+        <button type="button" data-u="imperial">lb / ft</button>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="field">
+        <label for="sex">Sex</label>
+        <select id="sex">
+          <option value="m">Male</option>
+          <option value="f">Female</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="age">Age</label>
+        <input type="number" id="age" min="16" max="90" placeholder="e.g. 32">
+      </div>
+    </div>
+
+    <div class="grid2" id="metricInputs">
+      <div class="field">
+        <label for="kg">Weight (kg)</label>
+        <input type="number" id="kg" min="35" max="250" step="0.1" placeholder="e.g. 84">
+      </div>
+      <div class="field">
+        <label for="cm">Height (cm)</label>
+        <input type="number" id="cm" min="120" max="230" placeholder="e.g. 178">
+      </div>
+    </div>
+
+    <div class="grid3" id="imperialInputs" style="display:none;">
+      <div class="field">
+        <label for="lb">Weight (lb)</label>
+        <input type="number" id="lb" min="80" max="550" step="0.1" placeholder="e.g. 185">
+      </div>
+      <div class="field">
+        <label for="ft">Height (ft)</label>
+        <input type="number" id="ft" min="4" max="7" placeholder="5">
+      </div>
+      <div class="field">
+        <label for="inch">Height (in)</label>
+        <input type="number" id="inch" min="0" max="11" placeholder="10">
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="field">
+        <label for="activity">Activity level</label>
+        <select id="activity">
+          <option value="1.2">Mostly sedentary (desk job, little training)</option>
+          <option value="1.375">Light (1–3 sessions/week)</option>
+          <option value="1.55" selected>Moderate (3–5 sessions/week)</option>
+          <option value="1.725">High (6+ sessions/week)</option>
+          <option value="1.9">Very high (2-a-days / physical job + training)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="goal">Goal</label>
+        <select id="goal">
+          <option value="-0.18">Fat loss</option>
+          <option value="0" selected>Maintain / recomposition</option>
+          <option value="0.10">Build muscle</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="primary" id="calcBtn" type="button">Calculate my targets</button>
+    <p id="formError" style="color:#E8A0A0; font-size:0.85rem; margin-top:10px; display:none;"></p>
+  </div>
+
+  <div class="card" id="results" aria-live="polite">
+    <h2>Your daily targets</h2>
+
+    <div class="kcal-line">
+      <span class="big" id="rKcal">—</span>
+      <span class="unit">kcal / day</span>
+    </div>
+
+    <div class="macro protein">
+      <div class="row"><span class="name">Protein</span><span class="grams"><span id="rP">—</span> g</span></div>
+      <div class="bar"><div class="fill" id="bP"></div></div>
+    </div>
+    <div class="macro carbs">
+      <div class="row"><span class="name">Carbohydrate</span><span class="grams"><span id="rC">—</span> g</span></div>
+      <div class="bar"><div class="fill" id="bC"></div></div>
+    </div>
+    <div class="macro fat">
+      <div class="row"><span class="name">Fat</span><span class="grams"><span id="rF">—</span> g</span></div>
+      <div class="bar"><div class="fill" id="bF"></div></div>
+    </div>
+
+    <p class="note" id="goalNote"></p>
+    <p class="note">Enter these three numbers as your custom targets in Cronometer. Weigh in under the same conditions daily, average the week, and adjust calories by 5–10% if the trend isn't moving the way you want after 2–3 weeks.</p>
+  </div>
+
+  <footer class="site">
+    <p>© Silverback Performance Coaching. General education, not individual medical or dietetic advice.</p>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  var unit = 'metric';
+  var seg = document.getElementById('unitSeg');
+
+  seg.addEventListener('click', function (e) {
+    var btn = e.target.closest('button');
+    if (!btn) return;
+    unit = btn.dataset.u;
+    seg.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b === btn); });
+    document.getElementById('metricInputs').style.display = unit === 'metric' ? '' : 'none';
+    document.getElementById('imperialInputs').style.display = unit === 'imperial' ? '' : 'none';
+  });
+
+  function num(id) { return parseFloat(document.getElementById(id).value); }
+
+  document.getElementById('calcBtn').addEventListener('click', function () {
+    var err = document.getElementById('formError');
+    err.style.display = 'none';
+
+    var age = num('age');
+    var sex = document.getElementById('sex').value;
+    var kg, cm;
+
+    if (unit === 'metric') {
+      kg = num('kg'); cm = num('cm');
+    } else {
+      var lb = num('lb'), ft = num('ft'), inch = num('inch') || 0;
+      kg = lb * 0.45359237;
+      cm = (ft * 12 + inch) * 2.54;
+    }
+
+    if (!age || !kg || !cm || isNaN(kg) || isNaN(cm)) {
+      err.textContent = 'Fill in age, weight and height to calculate.';
+      err.style.display = 'block';
+      return;
+    }
+
+    // Mifflin-St Jeor
+    var bmr = 10 * kg + 6.25 * cm - 5 * age + (sex === 'm' ? 5 : -161);
+    var tdee = bmr * parseFloat(document.getElementById('activity').value);
+    var goalAdj = parseFloat(document.getElementById('goal').value);
+    var kcal = Math.round(tdee * (1 + goalAdj) / 10) * 10;
+
+    // Protein: 2.0 g/kg (strength athlete default), slightly higher in a deficit
+    var pPerKg = goalAdj < 0 ? 2.2 : 2.0;
+    var protein = Math.round(kg * pPerKg);
+
+    // Fat: 25% of calories, floor of 0.8 g/kg
+    var fat = Math.max(Math.round(kcal * 0.25 / 9), Math.round(kg * 0.8));
+
+    // Carbs: the remainder
+    var carbs = Math.max(Math.round((kcal - protein * 4 - fat * 9) / 4), 0);
+
+    document.getElementById('rKcal').textContent = kcal.toLocaleString('en-GB');
+    document.getElementById('rP').textContent = protein;
+    document.getElementById('rC').textContent = carbs;
+    document.getElementById('rF').textContent = fat;
+
+    var maxG = Math.max(protein, carbs, fat);
+    document.getElementById('bP').style.width = (protein / maxG * 100) + '%';
+    document.getElementById('bC').style.width = (carbs / maxG * 100) + '%';
+    document.getElementById('bF').style.width = (fat / maxG * 100) + '%';
+
+    var notes = {
+      '-0.18': 'Fat loss target: expect roughly 0.5–1% of body weight per week. Faster than that and you\u2019re likely losing muscle — eat a little more.',
+      '0': 'Maintenance: hold here, train hard, and let body composition shift gradually.',
+      '0.10': 'Building: aim for roughly 0.25–0.5% of body weight gained per month. Faster than that is mostly fat.'
+    };
+    document.getElementById('goalNote').textContent = notes[String(goalAdj)] || '';
+
+    document.getElementById('results').classList.add('show');
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+})();
+</script>
+</body>
+</html>
