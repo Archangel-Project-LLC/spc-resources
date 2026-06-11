@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Silverback Macro Tracker — Silverback Performance Coaching</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .targets-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  .entry-row { display:grid; grid-template-columns:2fr 1fr 1fr 1fr auto; gap:10px; align-items:end; }
+  .log-list { list-style:none; margin-top:18px; }
+  .log-list li {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:10px 0; border-bottom:1px solid var(--card-edge); font-size:0.92rem;
+  }
+  .log-list li .meta { color:var(--muted); font-size:0.82rem; }
+  .log-list li button {
+    background:none; border:none; color:var(--muted); cursor:pointer; font-size:1rem; padding:4px 8px;
+  }
+  .log-list li button:hover { color:#E8A0A0; }
+  .totline { display:flex; justify-content:space-between; font-size:0.85rem; color:var(--muted); margin-top:4px; }
+  .remaining { color:var(--good); }
+  .over { color:#E8A0A0; }
+  .day-nav { display:flex; align-items:center; gap:14px; margin-bottom:18px; }
+  .day-nav .date {
+    font-family:'Fraunces',Georgia,serif; font-size:1.15rem; color:var(--ink); min-width:170px; text-align:center;
+  }
+  .wt-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:end; }
+  .wt-avg { font-family:'Fraunces',Georgia,serif; font-size:1.6rem; color:var(--ink); }
+  .wt-avg small { font-family:'Figtree',sans-serif; font-size:0.78rem; color:var(--muted); display:block; letter-spacing:0.06em; text-transform:uppercase; margin-top:2px; }
+  @media (max-width:640px){ .entry-row{grid-template-columns:1fr 1fr;} .entry-row .field:first-child{grid-column:1/-1;} .targets-row{grid-template-columns:1fr 1fr;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="crumbs"><a href="index.html">← All resources</a></nav>
+
+  <header class="site">
+    <p class="eyebrow">Silverback Performance Coaching</p>
+    <h1>Silverback Macro Tracker</h1>
+    <p class="lede">Set your targets, log what you eat, and watch the bars fill. Weigh in daily under the same conditions — the 7-day average is the number that matters, not any single morning. Everything saves on this device.</p>
+  </header>
+
+  <div class="card">
+    <h2>Your daily targets</h2>
+    <p style="color:var(--muted); font-size:0.9rem; margin-bottom:14px;">These pull through automatically if you used the <a href="calculator.html" style="color:var(--peri);">calculator</a> and saved your result. You can edit them any time.</p>
+    <div class="targets-row">
+      <div class="field"><label for="tKcal">Calories</label><input type="number" id="tKcal" min="0" step="10"></div>
+      <div class="field"><label for="tP">Protein (g)</label><input type="number" id="tP" min="0"></div>
+      <div class="field"><label for="tC">Carbs (g)</label><input type="number" id="tC" min="0"></div>
+      <div class="field"><label for="tF">Fat (g)</label><input type="number" id="tF" min="0"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="day-nav">
+      <button class="ghost" type="button" id="prevDay" aria-label="Previous day">←</button>
+      <span class="date" id="dayLabel">Today</span>
+      <button class="ghost" type="button" id="nextDay" aria-label="Next day">→</button>
+    </div>
+
+    <h2>Log a meal</h2>
+    <div class="entry-row">
+      <div class="field"><label for="eName">What was it (optional)</label><input type="text" id="eName" placeholder="e.g. Chicken, rice & veg"></div>
+      <div class="field"><label for="eP">Protein</label><input type="number" id="eP" min="0" placeholder="g"></div>
+      <div class="field"><label for="eC">Carbs</label><input type="number" id="eC" min="0" placeholder="g"></div>
+      <div class="field"><label for="eF">Fat</label><input type="number" id="eF" min="0" placeholder="g"></div>
+      <div class="field"><button class="primary" type="button" id="addBtn" style="margin-top:0;">Add</button></div>
+    </div>
+    <p style="color:var(--muted); font-size:0.82rem;">Get the gram numbers from Cronometer or the food label — calories are worked out for you (4 / 4 / 9).</p>
+
+    <ul class="log-list" id="logList"></ul>
+  </div>
+
+  <div class="card">
+    <h2>Today vs target</h2>
+
+    <div class="kcal-line">
+      <span class="big" id="sumKcal">0</span>
+      <span class="unit">/ <span id="lblKcal">—</span> kcal</span>
+    </div>
+
+    <div class="macro protein">
+      <div class="row"><span class="name">Protein</span><span class="grams"><span id="sumP">0</span> / <span id="lblP">—</span> g</span></div>
+      <div class="bar"><div class="fill" id="barP" style="width:0%"></div></div>
+      <div class="totline"><span></span><span id="remP"></span></div>
+    </div>
+    <div class="macro carbs">
+      <div class="row"><span class="name">Carbohydrate</span><span class="grams"><span id="sumC">0</span> / <span id="lblC">—</span> g</span></div>
+      <div class="bar"><div class="fill" id="barC" style="width:0%"></div></div>
+      <div class="totline"><span></span><span id="remC"></span></div>
+    </div>
+    <div class="macro fat">
+      <div class="row"><span class="name">Fat</span><span class="grams"><span id="sumF">0</span> / <span id="lblF">—</span> g</span></div>
+      <div class="bar"><div class="fill" id="barF" style="width:0%"></div></div>
+      <div class="totline"><span></span><span id="remF"></span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Morning weight</h2>
+    <div class="wt-row">
+      <div class="field" style="margin-bottom:0;">
+        <label for="wtInput">Today's weigh-in (kg)</label>
+        <input type="number" id="wtInput" min="0" step="0.1" placeholder="e.g. 84.6">
+      </div>
+      <div class="wt-avg"><span id="wtAvg">—</span><small>7-day average</small></div>
+    </div>
+    <p style="color:var(--muted); font-size:0.82rem; margin-top:12px;">Same time, same conditions, every day. Judge progress on the weekly average only.</p>
+  </div>
+
+  <p class="note">Tracking isn't forever — it's a skill, so you can eventually eyeball portions with confidence.</p>
+
+  <footer class="site">
+    <p>© Silverback Performance Coaching. General education, not individual medical or dietetic advice. Data is stored only on your device.</p>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  var T_KEY = 'spc-targets-v1';
+  var L_KEY = 'spc-log-v1';
+  var W_KEY = 'spc-weight-v1';
+
+  var offset = 0; // days back from today
+
+  function load(key, fallback) {
+    try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch (e) { return fallback; }
+  }
+  function store(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+  }
+  function dateKey(off) {
+    var d = new Date();
+    d.setDate(d.getDate() - off);
+    return d.toISOString().slice(0, 10);
+  }
+  function dayLabel(off) {
+    if (off === 0) return 'Today';
+    if (off === 1) return 'Yesterday';
+    var d = new Date();
+    d.setDate(d.getDate() - off);
+    return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+  }
+
+  // ----- Targets -----
+  var targets = load(T_KEY, { kcal: '', p: '', c: '', f: '' });
+  var tFields = { kcal: 'tKcal', p: 'tP', c: 'tC', f: 'tF' };
+  Object.keys(tFields).forEach(function (k) {
+    var el = document.getElementById(tFields[k]);
+    el.value = targets[k] || '';
+    el.addEventListener('input', function () {
+      targets[k] = parseFloat(el.value) || 0;
+      store(T_KEY, targets);
+      render();
+    });
+  });
+
+  // ----- Log -----
+  var log = load(L_KEY, {});
+
+  document.getElementById('addBtn').addEventListener('click', function () {
+    var p = parseFloat(document.getElementById('eP').value) || 0;
+    var c = parseFloat(document.getElementById('eC').value) || 0;
+    var f = parseFloat(document.getElementById('eF').value) || 0;
+    if (!p && !c && !f) return;
+    var name = document.getElementById('eName').value.trim() || 'Meal';
+    var key = dateKey(offset);
+    if (!log[key]) log[key] = [];
+    log[key].push({ n: name, p: p, c: c, f: f });
+    store(L_KEY, log);
+    ['eName', 'eP', 'eC', 'eF'].forEach(function (id) { document.getElementById(id).value = ''; });
+    document.getElementById('eName').focus();
+    render();
+  });
+
+  document.getElementById('prevDay').addEventListener('click', function () { offset++; render(); });
+  document.getElementById('nextDay').addEventListener('click', function () { if (offset > 0) offset--; render(); });
+
+  // ----- Weight -----
+  var weights = load(W_KEY, {});
+  var wtInput = document.getElementById('wtInput');
+  wtInput.addEventListener('input', function () {
+    var v = parseFloat(wtInput.value);
+    var key = dateKey(offset);
+    if (v) { weights[key] = v; } else { delete weights[key]; }
+    store(W_KEY, weights);
+    renderWeight();
+  });
+
+  function renderWeight() {
+    wtInput.value = weights[dateKey(offset)] || '';
+    var vals = [];
+    for (var i = 0; i < 7; i++) {
+      var w = weights[dateKey(i)];
+      if (w) vals.push(w);
+    }
+    var avgEl = document.getElementById('wtAvg');
+    if (vals.length >= 2) {
+      var avg = vals.reduce(function (a, b) { return a + b; }, 0) / vals.length;
+      avgEl.textContent = avg.toFixed(1) + ' kg';
+    } else {
+      avgEl.textContent = '—';
+    }
+  }
+
+  // ----- Render -----
+  function render() {
+    document.getElementById('dayLabel').textContent = dayLabel(offset);
+    document.getElementById('nextDay').style.visibility = offset === 0 ? 'hidden' : 'visible';
+
+    var key = dateKey(offset);
+    var entries = log[key] || [];
+    var list = document.getElementById('logList');
+    list.innerHTML = '';
+
+    var sum = { p: 0, c: 0, f: 0 };
+    entries.forEach(function (e, idx) {
+      sum.p += e.p; sum.c += e.c; sum.f += e.f;
+      var li = document.createElement('li');
+      var left = document.createElement('div');
+      var nm = document.createElement('div');
+      nm.textContent = e.n;
+      var meta = document.createElement('div');
+      meta.className = 'meta';
+      var kcal = Math.round(e.p * 4 + e.c * 4 + e.f * 9);
+      meta.textContent = 'P ' + e.p + ' · C ' + e.c + ' · F ' + e.f + ' · ' + kcal + ' kcal';
+      left.appendChild(nm); left.appendChild(meta);
+      var del = document.createElement('button');
+      del.textContent = '✕';
+      del.setAttribute('aria-label', 'Remove ' + e.n);
+      del.addEventListener('click', function () {
+        entries.splice(idx, 1);
+        if (entries.length === 0) delete log[key];
+        store(L_KEY, log);
+        render();
+      });
+      li.appendChild(left); li.appendChild(del);
+      list.appendChild(li);
+    });
+
+    var kcalSum = Math.round(sum.p * 4 + sum.c * 4 + sum.f * 9);
+    document.getElementById('sumKcal').textContent = kcalSum.toLocaleString('en-GB');
+    document.getElementById('sumP').textContent = Math.round(sum.p);
+    document.getElementById('sumC').textContent = Math.round(sum.c);
+    document.getElementById('sumF').textContent = Math.round(sum.f);
+
+    document.getElementById('lblKcal').textContent = targets.kcal || '—';
+    document.getElementById('lblP').textContent = targets.p || '—';
+    document.getElementById('lblC').textContent = targets.c || '—';
+    document.getElementById('lblF').textContent = targets.f || '—';
+
+    setBar('barP', 'remP', sum.p, targets.p);
+    setBar('barC', 'remC', sum.c, targets.c);
+    setBar('barF', 'remF', sum.f, targets.f);
+
+    renderWeight();
+  }
+
+  function setBar(barId, remId, val, target) {
+    var bar = document.getElementById(barId);
+    var rem = document.getElementById(remId);
+    if (!target) { bar.style.width = '0%'; rem.textContent = ''; return; }
+    var pct = Math.min(val / target * 100, 100);
+    bar.style.width = pct + '%';
+    var diff = Math.round(target - val);
+    if (diff >= 0) {
+      rem.textContent = diff + ' g to go';
+      rem.className = 'remaining';
+    } else {
+      rem.textContent = Math.abs(diff) + ' g over';
+      rem.className = 'over';
+    }
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>

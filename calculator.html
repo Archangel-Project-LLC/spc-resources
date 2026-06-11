@@ -116,6 +116,9 @@
 
     <p class="note" id="goalNote"></p>
     <p class="note">Enter these three numbers as your custom targets in Cronometer. Weigh in under the same conditions daily, average the week, and adjust calories by 5–10% if the trend isn't moving the way you want after 2–3 weeks.</p>
+
+    <button class="primary" id="saveBtn" type="button">Save as my tracker targets</button>
+    <p id="saveMsg" style="color:var(--good); font-size:0.85rem; margin-top:10px; display:none;">Saved — <a href="tracker.html" style="color:var(--peri);">open the Silverback Macro Tracker →</a></p>
   </div>
 
   <footer class="site">
@@ -197,6 +200,13 @@
 
     document.getElementById('results').classList.add('show');
     document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    document.getElementById('saveBtn').onclick = function () {
+      try {
+        localStorage.setItem('spc-targets-v1', JSON.stringify({ kcal: kcal, p: protein, c: carbs, f: fat }));
+        document.getElementById('saveMsg').style.display = 'block';
+      } catch (e) {}
+    };
   });
 })();
 </script>
