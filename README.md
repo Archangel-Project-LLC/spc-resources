@@ -14,3 +14,4 @@ Static site — no build step, no dependencies.
 
 ## Before sending the link
 - index.html: replace `[LINK — replace me]` with the Silverback Macro Tracker URL.
+
