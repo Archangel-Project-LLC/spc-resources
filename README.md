@@ -36,3 +36,14 @@ across every device you sign in from.
 - Security tip: after you have created your account, disable new sign-ups in **Authentication → Sign In / Providers** so no one else can register.
 - Changes sync live between open devices via Supabase Realtime.
 
+### Install it as an app
+`crm.html` is a PWA (`manifest.webmanifest` + `sw.js` + `icon-*.png`), so once the
+site is served over HTTPS you can install it like a native app:
+- **iPhone/iPad (Safari):** open `/crm.html` → Share → *Add to Home Screen*.
+- **Android (Chrome):** open `/crm.html` → menu → *Install app* / *Add to Home screen*.
+- **Desktop (Chrome/Edge):** open `/crm.html` → the install icon in the address bar.
+
+It then launches in its own window with the Silverback icon and opens instantly
+(the app shell is cached; your client data still comes from Supabase). Installing
+requires the live HTTPS site — it does not work from a local file.
+
